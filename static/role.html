@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prepped — Select Role</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="brand">
+      <div class="brand-mark">IP</div>
+      <div class="brand-text">
+        <span class="name">Prepped</span>
+        <span class="sub">Interview Prep Bot</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="stepper" id="stepper">
+  <div class="step done"><div class="step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><div class="step-label">Resume</div></div>
+  <div class="step-line"><i style="width:100%"></i></div>
+  <div class="step active"><div class="step-dot">2</div><div class="step-label">Role</div></div>
+  <div class="step-line"><i></i></div>
+  <div class="step"><div class="step-dot">3</div><div class="step-label">Target</div></div>
+  <div class="step-line"><i></i></div>
+  <div class="step"><div class="step-dot">4</div><div class="step-label">Interview</div></div>
+  <div class="step-line"><i></i></div>
+  <div class="step"><div class="step-dot">5</div><div class="step-label">Report</div></div>
+</div>
+
+<section class="screen" id="screen-role">
+  <div class="screen-head">
+    <span class="eyebrow">Step 2 of 5</span>
+    <h1>Which role are you preparing for?</h1>
+    <p>This shapes the question mix in your OA, technical, and HR rounds.</p>
+  </div>
+
+  <div class="role-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" id="roleSearch" placeholder="Search roles…">
+  </div>
+  <div class="role-grid" id="roleGrid"></div>
+
+  <div class="btn-row">
+    <a href="index.html" class="btn btn-ghost" id="roleBackBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Back</a>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="roleContinueBtn" disabled>Continue<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>

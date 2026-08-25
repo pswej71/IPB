@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prepped — Final Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="rgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F2A93B"/>
+      <stop offset="100%" stop-color="#6EE7B7"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="brand">
+      <div class="brand-mark">IP</div>
+      <div class="brand-text">
+        <span class="name">Prepped</span>
+        <span class="sub">Interview Prep Bot</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="stepper" id="stepper">
+  <div class="step done"><div class="step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><div class="step-label">Resume</div></div>
+  <div class="step-line"><i style="width:100%"></i></div>
+  <div class="step done"><div class="step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><div class="step-label">Role</div></div>
+  <div class="step-line"><i style="width:100%"></i></div>
+  <div class="step done"><div class="step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><div class="step-label">Target</div></div>
+  <div class="step-line"><i style="width:100%"></i></div>
+  <div class="step done"><div class="step-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><div class="step-label">Interview</div></div>
+  <div class="step-line"><i style="width:100%"></i></div>
+  <div class="step active"><div class="step-dot">5</div><div class="step-label">Report</div></div>
+</div>
+
+<section class="screen" id="screen-report">
+
+  <div id="analyzingBlock">
+    <div class="analyzing-wrap">
+      <div class="analyzing-ring">
+        <svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="38" fill="none" stroke="#1D2A37" stroke-width="7"/><circle cx="44" cy="44" r="38" fill="none" stroke="url(#rgGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="180 240"/></svg>
+      </div>
+      <h2>Analyzing your interview…</h2>
+      <p>Prepped AI is scoring your answers</p>
+      <div class="analyzing-steps" id="analyzingSteps"></div>
+    </div>
+  </div>
+
+  <div id="reportBlock" class="hidden">
+    <div class="screen-head">
+      <span class="eyebrow">Step 5 of 5</span>
+      <h1>Your interview report</h1>
+      <p>Here's how you performed across all three rounds, with a downloadable copy for later.</p>
+    </div>
+
+    <div class="card">
+      <div class="report-hero">
+        <div class="report-gauge">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle class="rg-track" cx="75" cy="75" r="68"/>
+            <circle class="rg-fill" id="rgFill" cx="75" cy="75" r="68" transform="rotate(-90 75 75)"/>
+          </svg>
+          <div class="rg-center"><span class="n" id="rgNum">0</span><span class="l">Readiness</span></div>
+        </div>
+        <div class="report-meta">
+          <h2 id="reportCandidate">Candidate</h2>
+          <p id="reportRole">Target role: —</p>
+          <div class="report-tags" id="reportTags"></div>
+        </div>
+      </div>
+
+      <div class="round-score-grid" id="roundScores"></div>
+
+      <div class="insight-cols">
+        <div class="insight-col">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Strengths</h3>
+          <div class="insight-list" id="strengthsList"></div>
+        </div>
+        <div class="insight-col">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>Areas to improve</h3>
+          <div class="insight-list" id="improvementsList"></div>
+        </div>
+      </div>
+
+      <div class="download-row">
+        <button class="btn btn-mint" id="downloadPdfBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Download as PDF</button>
+        <button class="btn btn-lavender" id="downloadWordBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Download as Word</button>
+        <a href="index.html" class="btn btn-ghost" id="restartBtn">Start a new mock interview</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>

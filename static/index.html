@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prepped — Upload Resume</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="brand">
+      <div class="brand-mark">IP</div>
+      <div class="brand-text">
+        <span class="name">Prepped</span>
+        <span class="sub">Interview Prep Bot</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="stepper" id="stepper">
+  <div class="step active"><div class="step-dot">1</div><div class="step-label">Resume</div></div>
+  <div class="step-line"><i></i></div>
+  <div class="step"><div class="step-dot">2</div><div class="step-label">Role</div></div>
+  <div class="step-line"><i></i></div>
+  <div class="step"><div class="step-dot">3</div><div class="step-label">Target</div></div>
+  <div class="step-line"><i></i></div>
+  <div class="step"><div class="step-dot">4</div><div class="step-label">Interview</div></div>
+  <div class="step-line"><i></i></div>
+  <div class="step"><div class="step-dot">5</div><div class="step-label">Report</div></div>
+</div>
+
+<section class="screen" id="screen-resume">
+  <div class="screen-head">
+    <span class="eyebrow">Step 1 of 5</span>
+    <h1>Upload your resume</h1>
+    <p>We'll use this to personalize your mock interview questions and tailor the final report to your background.</p>
+  </div>
+
+  <div class="dropzone" id="dropzone">
+    <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></div>
+    <h3>Drag & drop your resume here</h3>
+    <p>or <span class="browse">browse files</span> — PDF or DOCX, up to 5MB</p>
+  </div>
+  <input type="file" id="resumeInput" accept=".pdf,.doc,.docx" class="hidden">
+  <div id="fileCardWrap"></div>
+
+  <div class="btn-row">
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="resumeContinueBtn" disabled>Continue<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
