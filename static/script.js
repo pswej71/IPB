@@ -50,25 +50,28 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
-// ----------------------------------------------------
-// Page specific initialization based on URL
-// ----------------------------------------------------
+// ============================================================
+// Page router — runs the right init function based on URL
+// ============================================================
 document.addEventListener("DOMContentLoaded", ()=>{
   const path = window.location.pathname;
   if(path.includes("role.html")) initRoleScreen();
   else if(path.includes("target.html")) initTargetScreen();
   else if(path.includes("interview.html")) initInterviewScreen();
   else if(path.includes("report.html")) initReportScreen();
-  else initResumeScreen(); // default index.html
+  else initResumeScreen();
 });
 
-// --- index.html (Resume) ---
+// ============================================================
+// PAGE 1: index.html — Resume Upload
+// ============================================================
 function initResumeScreen(){
-  sessionStorage.clear(); // Reset state on fresh start
+  sessionStorage.clear();
   const dz = document.getElementById("dropzone");
   const input = document.getElementById("resumeInput");
   const fileCardWrap = document.getElementById("fileCardWrap");
   const continueBtn = document.getElementById("resumeContinueBtn");
+  let selectedFile = null;
 
   dz.addEventListener("click", ()=> input.click());
   dz.addEventListener("dragover", e=>{ e.preventDefault(); dz.classList.add("drag"); });
@@ -82,21 +85,10 @@ function initResumeScreen(){
   });
 
   function handleResumeFile(file){
-    // Keep file in memory for now, but upload it at the target screen.
-    // However, files can't be stored in sessionStorage. We must upload it here or fake it if we are switching pages.
-    // To solve this across MPAs, let's upload the resume immediately here and get a candidate_id placeholder or just pass the filename.
-    
-    // Simpler fix: we upload immediately to a temp endpoint or just create candidate later.
-    // Since we need it on target screen, let's do the actual API call on step 1 to store the resume, but wait, candidate isn't created yet.
-    // Actually, we can just save the resume name and size to sessionStorage. Since we are restricted by browser security, we can't carry File objects across pages.
-    // Real implementation: We should submit the file to the backend here and return a file_id.
-    
-    // For this mock, we'll store metadata in sessionStorage. We'll skip the physical upload in MPA if we don't have the file object on page 3.
-    // To make it fully work: we create a candidate with empty fields here, upload file, and update candidate on page 3!
-    
+    selectedFile = file;
     sessionStorage.setItem("resume_name", file.name);
     sessionStorage.setItem("resume_size", file.size);
-    
+
     fileCardWrap.innerHTML = `
       <div class="file-card">
         <div class="fico">${icon("file")}</div>
@@ -106,21 +98,56 @@ function initResumeScreen(){
         </div>
         <button class="file-remove" id="removeFile">${icon("x")}</button>
       </div>`;
-    
+
     document.getElementById("removeFile").addEventListener("click", ()=>{
+      selectedFile = null;
       sessionStorage.removeItem("resume_name");
       sessionStorage.removeItem("resume_size");
+      sessionStorage.removeItem("resume_path");
       fileCardWrap.innerHTML = "";
       continueBtn.disabled = true;
     });
     continueBtn.disabled = false;
   }
-  continueBtn.addEventListener("click", ()=>{
-    window.location.href = "role.html";
+
+  continueBtn.addEventListener("click", async ()=>{
+    if(!selectedFile) return;
+
+    // Upload the file to the backend immediately
+    continueBtn.disabled = true;
+    continueBtn.innerHTML = 'Uploading...' + icon("upload");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const res = await fetch("/api/upload-resume", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+
+      if(data.success){
+        sessionStorage.setItem("resume_path", data.filepath);
+        sessionStorage.setItem("resume_name", data.filename);
+        window.location.href = "role.html";
+      } else {
+        alert("Upload failed. Please try again.");
+        continueBtn.disabled = false;
+        continueBtn.innerHTML = 'Continue' + icon("arrowRight");
+      }
+    } catch(err){
+      console.error("Upload error:", err);
+      alert("Upload failed. Is the server running?");
+      continueBtn.disabled = false;
+      continueBtn.innerHTML = 'Continue' + icon("arrowRight");
+    }
   });
 }
 
-// --- role.html ---
+// ============================================================
+// PAGE 2: role.html — Role Selection
+// ============================================================
 function initRoleScreen(){
   const grid = document.getElementById("roleGrid");
   const search = document.getElementById("roleSearch");
@@ -151,11 +178,13 @@ function initRoleScreen(){
   if(selectedRole) continueBtn.disabled = false;
 
   continueBtn.addEventListener("click", ()=>{
-      window.location.href = "target.html";
+    window.location.href = "target.html";
   });
 }
 
-// --- target.html ---
+// ============================================================
+// PAGE 3: target.html — Target Companies & Package
+// ============================================================
 function initTargetScreen(){
   const chipGroup = document.getElementById("companyChips");
   const addInput = document.getElementById("customCompanyInput");
@@ -177,11 +206,8 @@ function initTargetScreen(){
       chip.className = "chip" + (companies.includes(name) ? " selected" : "");
       chip.textContent = name;
       chip.addEventListener("click", ()=>{
-        if(companies.includes(name)){
-          companies = companies.filter(c=>c!==name);
-        } else {
-          companies.push(name);
-        }
+        if(companies.includes(name)) companies = companies.filter(c=>c!==name);
+        else companies.push(name);
         sessionStorage.setItem("companies", JSON.stringify(companies));
         renderChips();
         validate();
@@ -206,7 +232,6 @@ function initTargetScreen(){
   unitButtons.forEach(b=>{
     if(b.dataset.unit === pkgUnit) b.classList.add("selected");
     else b.classList.remove("selected");
-    
     b.addEventListener("click", ()=>{
       unitButtons.forEach(x=>x.classList.remove("selected"));
       b.classList.add("selected");
@@ -215,71 +240,88 @@ function initTargetScreen(){
     });
   });
 
-  pkgInput.addEventListener("input", ()=>{ 
-      pkg = pkgInput.value; 
-      sessionStorage.setItem("package", pkg);
-      validate(); 
+  pkgInput.addEventListener("input", ()=>{
+    pkg = pkgInput.value;
+    sessionStorage.setItem("package", pkg);
+    validate();
   });
 
   function validate(){
-    continueBtn.disabled = !(companies.length>0 && pkg && Number(pkg) > 0);
+    continueBtn.disabled = !(companies.length>0 && pkg && Number(pkg)>0);
   }
   validate();
 
   continueBtn.addEventListener("click", async ()=>{
-      continueBtn.disabled = true;
-      continueBtn.textContent = "Creating profile...";
-      
+    continueBtn.disabled = true;
+    continueBtn.innerHTML = `${icon("spark")} AI is generating your questions...`;
+
+    try {
+      // 1. Create candidate profile
       const candidateData = {
-          name: (sessionStorage.getItem("resume_name") || "Candidate").split('.')[0],
-          role_id: sessionStorage.getItem("role"),
-          target_companies: companies.join(", "),
-          expected_package: parseFloat(pkg),
-          package_unit: pkgUnit
+        name: (sessionStorage.getItem("resume_name") || "Candidate").split('.')[0],
+        role_id: sessionStorage.getItem("role"),
+        target_companies: companies.join(", "),
+        expected_package: parseFloat(pkg),
+        package_unit: pkgUnit
       };
-      
+
       const res = await fetch("/api/candidate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(candidateData)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(candidateData)
       });
       const cand = await res.json();
       sessionStorage.setItem("candidate_id", cand.id);
 
-      const qRes = await fetch("/api/questions/" + sessionStorage.getItem("role"));
+      // 2. Generate personalized questions using AI + resume
+      const qRes = await fetch("/api/generate-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role_id: sessionStorage.getItem("role"),
+          resume_path: sessionStorage.getItem("resume_path") || ""
+        })
+      });
       const qBank = await qRes.json();
       sessionStorage.setItem("QUESTION_BANK", JSON.stringify(qBank));
 
       window.location.href = "interview.html";
+    } catch(err){
+      console.error("Error:", err);
+      alert("Something went wrong. Please try again.");
+      continueBtn.disabled = false;
+      continueBtn.innerHTML = 'Start mock interview' + icon("arrowRight");
+    }
   });
 }
 
-// --- interview.html ---
+// ============================================================
+// PAGE 4: interview.html — Mock Interview
+// ============================================================
 let interviewState = {
-    round: "oa",
-    qIndex: { oa:0, technical:0, hr:0 },
-    answers: { oa:{}, technical:{}, hr:{} },
-    roundComplete: { oa:false, technical:false, hr:false },
-    timeLeft: 0,
-    timerId: null
+  round: "oa",
+  qIndex: { oa:0, technical:0, hr:0 },
+  answers: { oa:{}, technical:{}, hr:{} },
+  roundComplete: { oa:false, technical:false, hr:false },
+  timeLeft: 0,
+  timerId: null
 };
 
 const ROUND_META = {
-  oa:        { title:"Online Assessment", sub:"8 questions • MCQ", icon:"layout", time:45 },
-  technical: { title:"Technical Round",   sub:"5 questions • Written", icon:"code", time:120 },
-  hr:        { title:"HR Round",          sub:"5 questions • Written", icon:"briefcase", time:90 }
+  oa:        { title:"Online Assessment", sub:"8 questions • MCQ", icon:"layout", time:60 },
+  technical: { title:"Technical Round",   sub:"5 questions • Written", icon:"code", time:180 },
+  hr:        { title:"HR Round",          sub:"5 questions • Written", icon:"briefcase", time:120 }
 };
 const ROUND_ORDER = ["oa","technical","hr"];
 
 function initInterviewScreen(){
   let saved = sessionStorage.getItem("interviewState");
   if(saved) interviewState = JSON.parse(saved);
-
   renderInterview();
 }
 
 function saveInterviewState(){
-    sessionStorage.setItem("interviewState", JSON.stringify(interviewState));
+  sessionStorage.setItem("interviewState", JSON.stringify(interviewState));
 }
 
 function renderInterview(){
@@ -319,12 +361,12 @@ function renderQuestion(){
   const qBank = JSON.parse(sessionStorage.getItem("QUESTION_BANK") || "{}");
   const questions = qBank[interviewState.round] || [];
   const idx = interviewState.qIndex[interviewState.round];
-  
+
   if(questions.length === 0){
-      document.getElementById("questionBody").innerHTML = "No questions loaded.";
-      return;
+    document.getElementById("questionBody").innerHTML = "<p style='color:var(--text-tertiary)'>No questions loaded. Please go back and try again.</p>";
+    return;
   }
-  
+
   const q = questions[idx];
   const body = document.getElementById("questionBody");
   const meta = ROUND_META[interviewState.round];
@@ -332,7 +374,7 @@ function renderQuestion(){
   document.getElementById("qProgressText").textContent = `Question ${idx+1} of ${questions.length}`;
   document.getElementById("qProgressBar").style.width = `${(idx/questions.length)*100}%`;
 
-  let inner = `<div class="q-tagrow"><span class="q-tag">${q.tag}</span><span class="q-tag">${meta.title}</span></div>
+  let inner = `<div class="q-tagrow"><span class="q-tag">${escapeHtml(q.tag)}</span><span class="q-tag">${meta.title}</span></div>
     <div class="q-text">${escapeHtml(q.text)}</div>`;
 
   if(q.type==="mcq"){
@@ -380,10 +422,10 @@ function renderQuestion(){
 
   nextBtn.onclick = ()=> advanceQuestion();
   prevBtn.onclick = ()=>{
-    if(idx>0){ 
-      interviewState.qIndex[interviewState.round]--; 
+    if(idx>0){
+      interviewState.qIndex[interviewState.round]--;
       saveInterviewState();
-      renderQuestion(); 
+      renderQuestion();
     }
   };
 
@@ -394,7 +436,7 @@ function advanceQuestion(){
   const qBank = JSON.parse(sessionStorage.getItem("QUESTION_BANK") || "{}");
   const questions = qBank[interviewState.round] || [];
   const idx = interviewState.qIndex[interviewState.round];
-  
+
   if(idx < questions.length-1){
     interviewState.qIndex[interviewState.round]++;
     saveInterviewState();
@@ -432,7 +474,9 @@ function updateTimerUI(){
   el.textContent = `${m}:${s.toString().padStart(2,"0")}`;
 }
 
-// --- report.html ---
+// ============================================================
+// PAGE 5: report.html — Analysis & Report
+// ============================================================
 const ANALYZE_STEPS = [
   "Reviewing OA answers",
   "Evaluating technical responses",
@@ -453,41 +497,54 @@ function runAnalysis(){
     `<div class="astep" id="astep-${i}">${icon("clock")}<span>${s}</span></div>`
   ).join("");
 
-  let i = 0;
-  function next(){
-    if(i>0){
-      const prev = document.getElementById("astep-"+(i-1));
-      prev.classList.add("done");
-      prev.innerHTML = icon("check") + `<span>${ANALYZE_STEPS[i-1]}</span>`;
-    }
-    if(i < ANALYZE_STEPS.length){
-      i++;
-      setTimeout(next, 550);
-    } else {
+  // Start the analyzing animation, then call the API
+  submitAndComputeScores().then(report => {
+    // Complete all animation steps
+    ANALYZE_STEPS.forEach((s, idx) => {
+      const el = document.getElementById("astep-"+idx);
+      el.classList.add("done");
+      el.innerHTML = icon("check") + `<span>${s}</span>`;
+    });
+    setTimeout(()=>{
       analyzingBlock.classList.add("hidden");
       reportBlock.classList.remove("hidden");
-      submitAndComputeScores().then(report => {
-          renderReport(report);
-      });
+      renderReport(report);
+    }, 400);
+  }).catch(err => {
+    console.error("Analysis error:", err);
+    // Show error state
+    stepsWrap.innerHTML = `<div class="astep" style="color:var(--coral)">${icon("x")}<span>Analysis failed. Please try again.</span></div>`;
+  });
+
+  // Animate steps in parallel
+  let i = 0;
+  function animateStep(){
+    if(i < ANALYZE_STEPS.length){
+      const el = document.getElementById("astep-"+i);
+      if(el && !el.classList.contains("done")){
+        el.style.color = "var(--amber)";
+      }
+      i++;
+      setTimeout(animateStep, 800);
     }
   }
-  next();
+  animateStep();
 }
 
 async function submitAndComputeScores(){
-    const saved = JSON.parse(sessionStorage.getItem("interviewState") || "{}");
-    const payload = {
-        candidate_id: parseInt(sessionStorage.getItem("candidate_id") || "0"),
-        round: "all",
-        answers: saved.answers || {}
-    };
-    
-    const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-    return await res.json();
+  const saved = JSON.parse(sessionStorage.getItem("interviewState") || "{}");
+  const payload = {
+    candidate_id: parseInt(sessionStorage.getItem("candidate_id") || "0"),
+    round: "all",
+    answers: saved.answers || {}
+  };
+
+  const res = await fetch("/api/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
 }
 
 function renderReport(r){

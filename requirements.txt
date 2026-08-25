@@ -6,3 +6,6 @@ python-multipart
 pydantic
 python-dotenv
 requests
+google-genai
+PyPDF2
+python-docx

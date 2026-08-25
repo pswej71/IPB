@@ -1,13 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
-
-class ReportBase(BaseModel):
-    oa_score: int
-    technical_score: float
-    hr_score: float
-    overall_score: int
-    strengths: str
-    improvements: str
+from typing import Optional, Any
 
 class CandidateCreate(BaseModel):
     name: str
@@ -21,9 +13,9 @@ class CandidateResponse(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AnswerSubmission(BaseModel):
     round: str
-    answers: dict
+    answers: Any
     candidate_id: int
