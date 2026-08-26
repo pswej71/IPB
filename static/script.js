@@ -278,6 +278,7 @@ function initTargetScreen(){
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          candidate_id: sessionStorage.getItem("candidate_id"),
           role_id: sessionStorage.getItem("role"),
           resume_path: sessionStorage.getItem("resume_path") || ""
         })

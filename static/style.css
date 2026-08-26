@@ -4,14 +4,14 @@
    ========================================================= */
 
 :root{
-  --bg:#0F1720;
-  --bg-elev:#16212C;
-  --bg-elev-2:#1D2A37;
-  --border:#263441;
-  --border-soft:#20303d;
-  --text-primary:#F2F4F1;
-  --text-secondary:#93A3AE;
-  --text-tertiary:#5E6E79;
+  --bg:#FFFFFF;
+  --bg-elev:#F9FAFB;
+  --bg-elev-2:#F3F4F6;
+  --border:#E5E7EB;
+  --border-soft:#F3F4F6;
+  --text-primary:#111827;
+  --text-secondary:#4B5563;
+  --text-tertiary:#6B7280;
   --amber:#F2A93B;
   --amber-dim:#7A5A22;
   --mint:#6EE7B7;
@@ -49,7 +49,7 @@ input,textarea,select{font-family:inherit;}
 /* ---------- App shell / header ---------- */
 .app-header{
   position:sticky;top:0;z-index:30;
-  background:rgba(15,23,32,0.88);backdrop-filter:blur(10px);
+  background:rgba(255,255,255,0.88);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border-soft);
   padding:14px 24px;
 }

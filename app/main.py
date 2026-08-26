@@ -139,6 +139,7 @@ def generate_questions(payload: dict, db: Session = Depends(database.get_db)):
     """
     role_id = payload.get("role_id", "sde")
     resume_path = payload.get("resume_path", "")
+    candidate_id = payload.get("candidate_id")
 
     # Extract resume text
     resume_text = ""
@@ -228,14 +229,27 @@ Rules:
 
             questions = json.loads(llm_text)
             print(f"[Gemini] Generated {len(questions.get('oa',[]))} OA, {len(questions.get('technical',[]))} Tech, {len(questions.get('hr',[]))} HR questions")
-            return questions
         else:
             print("[Warning] No Gemini client. Returning fallback questions.")
-            return FALLBACK_QUESTIONS
+            questions = FALLBACK_QUESTIONS
     except Exception as e:
         print(f"[Gemini Question Gen Error] {e}")
         traceback.print_exc()
-        return FALLBACK_QUESTIONS
+        questions = FALLBACK_QUESTIONS
+
+    if candidate_id:
+        for r_key, r_qs in questions.items():
+            for q in r_qs:
+                db_q = models.InterviewQA(
+                    candidate_id=candidate_id,
+                    round=r_key,
+                    question_id=q["id"],
+                    question_text=q["text"]
+                )
+                db.add(db_q)
+        db.commit()
+
+    return questions
 
 
 @app.get("/api/questions/{role_id}")
@@ -249,6 +263,18 @@ def analyze_answers(submission: schemas.AnswerSubmission, db: Session = Depends(
     candidate = None
     if submission.candidate_id > 0:
         candidate = db.query(models.Candidate).filter(models.Candidate.id == submission.candidate_id).first()
+        
+        # update answers in db
+        if isinstance(submission.answers, dict):
+            for r_key, r_ans in submission.answers.items():
+                if isinstance(r_ans, dict):
+                    for q_id, a_text in r_ans.items():
+                        db.query(models.InterviewQA).filter(
+                            models.InterviewQA.candidate_id == submission.candidate_id,
+                            models.InterviewQA.round == r_key,
+                            models.InterviewQA.question_id == q_id
+                        ).update({"answer_text": str(a_text)})
+            db.commit()
 
     role_name = candidate.role_id if candidate else "general"
     pkg_info = f"{candidate.expected_package} {candidate.package_unit}" if candidate else "not specified"

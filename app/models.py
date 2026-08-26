@@ -38,3 +38,15 @@ class Report(Base):
     improvements = Column(Text)
 
     candidate = relationship("Candidate", back_populates="report")
+
+class InterviewQA(Base):
+    __tablename__ = "interview_qa"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    candidate_id = Column(Integer, ForeignKey("candidates.id"))
+    round = Column(String(50))
+    question_id = Column(String(50))
+    question_text = Column(Text)
+    answer_text = Column(Text, nullable=True)
+
+    candidate = relationship("Candidate")
